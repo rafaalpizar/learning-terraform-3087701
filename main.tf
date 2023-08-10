@@ -14,8 +14,13 @@ data "aws_ami" "app_ami" {
   owners = ["979382823631"] # Bitnami
 }
 
-data "aws_vpc" "default" {
-  default = true
+
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "Training linkeding blog VPC"
+  }
 }
 
 resource "aws_instance" "blog" {
@@ -33,7 +38,7 @@ resource "aws_security_group" "blog" {
   name        = "blog"
   description = "Allow http and https in. Allow everything out"
 
-  vpc_id = data.aws_vpc.default.id
+  vpc_id = aws_vpc.main.id
 }
 
 resource "aws_security_group_rule" "blog_http_in" {
