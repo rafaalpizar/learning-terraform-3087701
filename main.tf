@@ -34,7 +34,7 @@ resource "aws_subnet" "blog_subnet" {
 
 resource "aws_network_interface" "blog_netinterface" {
   subnet_id   = aws_subnet.blog_subnet.id
-  private_ips = ["10.0.1.1"]
+  private_ips = ["10.0.1.101"]
 
   tags = {
     Name = "primary_network_interface"
