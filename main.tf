@@ -22,7 +22,7 @@ resource "aws_instance" "blog" {
   ami           = data.aws_ami.app_ami.id
   instance_type = var.instance_type
 
-  vpc_security_groups_ids = [aws_security_group.blog.id]
+  vpc_security_group_ids = [aws_security_group.blog.id]
 
   tags = {
     Name = "HelloWorld"
@@ -57,7 +57,7 @@ resource "aws_security_group_rule" "blog_https_in" {
 }
 
 resource "aws_security_group_rule" "blog_everything_out" {
-  type        = "engress"
+  type        = "egress"
   from_port   = 0
   to_port     = 0
   protocol    = "-1"
