@@ -14,30 +14,20 @@ data "aws_ami" "app_ami" {
   owners = ["979382823631"] # Bitnami
 }
 
-resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+module "blog_vpc" {
+  source = "terraform-aws-modules/vpc/aws"
+
+  name = "dev"
+  cidr = "10.0.0.0/16"
+
+  azs             = ["us-west-2a", "us-west-2b", "us-west-2c"]
+  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+
+  enable_nat_gateway = true
 
   tags = {
-    Name = "Training linkeding blog VPC"
-  }
-}
-
-resource "aws_subnet" "blog_subnet" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-west-2b"
-
-  tags = {
-    Name = "tf-blog-subnet"
-  }
-}
-
-resource "aws_network_interface" "blog_netinterface" {
-  subnet_id   = aws_subnet.blog_subnet.id
-  private_ips = ["10.0.1.101"]
-
-  tags = {
-    Name = "primary_network_interface"
+    Terraform = "true"
+    Environment = "dev"
   }
 }
 
@@ -45,13 +35,20 @@ resource "aws_instance" "blog" {
   ami           = data.aws_ami.app_ami.id
   instance_type = var.instance_type
 
-  network_interface {
-    network_interface_id = aws_network_interface.blog_netinterface.id
-    device_index         = 0
-  }
-
   tags = {
     Name = "HelloWorld"
   }
 }
 
+module "blog_sg" {
+  source = "terraform-aws-modules/security-group/aws//modules/http-80"
+
+  name        = "blog"
+  description = "Security group training blog"
+  vpc_id      = module.blog_vpc.public_subnets[0]
+
+  ingress_rules = ["http-80-tcp", "https-443-tcp"]
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+  egress_rules = ["all-all"]
+  egress_rules_cidr_blocks = ["0.0.0.0/0"]
+}
